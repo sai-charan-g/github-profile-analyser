@@ -3,7 +3,7 @@
 Backend service that fetches a GitHub user's public profile, computes useful insights, and stores them in MySQL.
 
 **Live API:** `https://<your-deployed-url>`
-**GitHub Repo:** `https://github.com/<your-username>/<your-repo>`
+**GitHub Repo:** https://github.com/sai-charan-g/github-profile-analyser
 
 ---
 
