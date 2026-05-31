@@ -10,24 +10,35 @@ const pool = mysql.createPool({
   connectionLimit: 10,
   queueLimit: 0,
   timezone: 'Z',
+  ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
 });
 
 async function testConnection() {
-  const tempPool = mysql.createPool({
-    host: process.env.DB_HOST || 'localhost',
-    port: parseInt(process.env.DB_PORT) || 3306,
-    user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || '',
-  });
+  try {
+    const dbName = process.env.DB_NAME || 'github_analyzer';
 
-  const conn = await tempPool.getConnection();
-  const dbName = process.env.DB_NAME || 'github_analyzer';
-  await conn.execute(`CREATE DATABASE IF NOT EXISTS \`${dbName}\``);
+    const tempPool = mysql.createPool({
+      host: process.env.DB_HOST || 'localhost',
+      port: parseInt(process.env.DB_PORT) || 3306,
+      user: process.env.DB_USER || 'root',
+      password: process.env.DB_PASSWORD || '',
+      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
+    });
+
+    const conn = await tempPool.getConnection();
+    try {
+      await conn.execute(`CREATE DATABASE IF NOT EXISTS \`${dbName}\``);
+    } catch (e) {
+      // Railway pre-creates the DB, ignore permission errors here
+    }
+    conn.release();
+    await tempPool.end();
+  } catch (e) {
+    // If connecting without DB fails, just try the main pool directly
+  }
+
+  const conn = await pool.getConnection();
   conn.release();
-  await tempPool.end();
-
-  const mainConn = await pool.getConnection();
-  mainConn.release();
   console.log('DB connected');
 }
 

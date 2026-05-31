@@ -9,12 +9,12 @@ async function startServer() {
   await initializeDatabase();
 
   app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
+    console.log(`Server running on port ${PORT}`);
     console.log(`GitHub Token: ${process.env.GITHUB_TOKEN ? 'set' : 'not set (60 req/hr)'}`);
   });
 }
 
 startServer().catch(err => {
-  console.error('Failed to start:', err.message);
+  console.error('Failed to start:', err.message || err);
   process.exit(1);
 });
