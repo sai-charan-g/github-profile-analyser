@@ -1,42 +1,20 @@
 const mysql = require('mysql2/promise');
 
-const pool = mysql.createPool({
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT) || 3306,
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'github_analyzer',
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-  timezone: 'Z',
-  ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
-});
+const pool = mysql.createPool(
+  process.env.MYSQL_URL || {
+    host: process.env.DB_HOST || 'localhost',
+    port: parseInt(process.env.DB_PORT) || 3306,
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASSWORD || '',
+    database: process.env.DB_NAME || 'github_analyzer',
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0,
+    timezone: 'Z',
+  }
+);
 
 async function testConnection() {
-  try {
-    const dbName = process.env.DB_NAME || 'github_analyzer';
-
-    const tempPool = mysql.createPool({
-      host: process.env.DB_HOST || 'localhost',
-      port: parseInt(process.env.DB_PORT) || 3306,
-      user: process.env.DB_USER || 'root',
-      password: process.env.DB_PASSWORD || '',
-      ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
-    });
-
-    const conn = await tempPool.getConnection();
-    try {
-      await conn.execute(`CREATE DATABASE IF NOT EXISTS \`${dbName}\``);
-    } catch (e) {
-      // Railway pre-creates the DB, ignore permission errors here
-    }
-    conn.release();
-    await tempPool.end();
-  } catch (e) {
-    // If connecting without DB fails, just try the main pool directly
-  }
-
   const conn = await pool.getConnection();
   conn.release();
   console.log('DB connected');
